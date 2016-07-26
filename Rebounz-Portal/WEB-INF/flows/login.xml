@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow
+						  http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
+
+  <var name="loginDetails" class="com.pda.rebounz.model.LoginDetails"/>
+   		
+    <view-state id="signInView" model="loginDetails" view="login">
+		<transition on="SignIn" to="processSignIn" />
+        <transition on="clear" to="signInView"  bind="false" />
+    </view-state>
+	
+	<action-state id="processSignIn">
+		<evaluate expression="loginController.loginUser(loginDetails,flowRequestContext,messageContext)" result="flowScope.res"/>
+		<transition on="${flowScope.res.view == 'true'}" to="welcomePage"/>
+		<transition on="${flowScope.res.view == 'false'}" to="signInView"/>
+	</action-state>
+	
+	<action-state id="identifyStatus">
+		<evaluate expression="loginController.availableStatus(loginDetails,flowRequestContext,messageContext)" result="flowScope.res"/>	
+		<transition on="${flowScope.res.view == 'true'}" to="welcomePage"/>
+		<transition on="${flowScope.res.view == 'false'}" to="pwdReset"/>
+	</action-state>
+
+    <view-state id="pwdReset" model="loginDetails" view="passwordrestorepage">
+    	<transition on="Update" to="processPwdRestore" />
+        <transition on="clear" to="pwdReset" bind="false" />
+    </view-state>
+    
+   <action-state id="processPwdRestore">
+		<evaluate expression="loginController.pwdRestore(loginDetails,flowRequestContext,messageContext)" result="flowScope.res"/>	
+		<transition on="${flowScope.res.view == 'true'}" to="welcomePage"/>
+		<transition on="${flowScope.res.view == 'false'}" to="pwdReset"/>
+	</action-state>
+		    
+     <end-state id="welcomePage" view="Success"/>
+
+</flow>
+	

@@ -1,0 +1,71 @@
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow
+						  http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
+
+    <var name="userDetails" class="com.pda.rebounz.model.UserDetails"/>
+    <var name="loginDetails" class="com.pda.rebounz.model.LoginDetails"/>
+	
+	<view-state id="welcomePage" model="userDetails" view="Welcome1" >
+	<on-render>
+		<evaluate expression="adminController.checkingRole(flowRequestContext)"/>
+	</on-render>
+	<transition on="viewUser" to="viewUserDetails" validate="false" />
+	<transition on="logOff" to="logoutPage" bind="false"/>
+	<transition on="viewProductCatalogue" to="catalogue" bind="false" validate="false"/>
+	</view-state>
+	
+	<action-state id="viewUserDetails">
+	<evaluate expression="adminController.viewUser(userDetails,flowRequestContext)" />
+	<transition to="viewUserShow"/>
+	</action-state>
+    
+	<view-state id="viewUserShow" model="userDetails" view="viewpage">
+	<transition on="Delete" to="deleteUserDetails" />
+	<transition on="createUser" to="createRoles" validate="false" />
+    <transition on="editUser" to="editUserDetails" validate="false" />
+    <transition on="logOff" to="logoutPage" bind="false"/>
+	</view-state>
+	
+	<action-state id="deleteUserDetails">
+		<evaluate expression="adminController.deleteUser(userDetails,flowRequestContext,messageContext)" result="flowScope.res"/>
+		<transition on="${flowScope.res.view == 'false'}" to="viewUserDetails"/>
+		<transition on="${flowScope.res.view == 'true'}" to="viewUserDetails"/>
+	</action-state>
+	
+	<view-state id="createRoles" model="userDetails" view="createnewuser">
+		<transition on="Create" to="createRolesProcess" />
+	</view-state>
+		
+	<action-state id="createRolesProcess">
+        <evaluate expression="adminController.createUser(userDetails,flowRequestContext,messageContext)" result="flowScope.res"/>
+		<transition on="${flowScope.res.view == 'true'}" to="createRoles"/>
+		<transition on="${flowScope.res.view == 'false'}" to="createRoles"/>
+	</action-state>
+		
+	<action-state id="editUserDetails">
+        <evaluate expression="adminController.editUser(userDetails,flowRequestContext)" />
+		<transition to="editPage"/>
+	</action-state>
+	
+	<view-state id="editPage" model="userDetails" view="edituser">
+		<transition on="getUsernameList" to="editUserPageProcess" validate="false" />
+		<transition on="Edit" to="updateValue" />
+       	<transition on="Clear" to="editPage" bind="false" />
+	</view-state>
+	
+	<action-state id="editUserPageProcess">
+		<evaluate expression="adminController.editUserDetails(userDetails,flowRequestContext)" />
+		<transition to="editPage"/>
+	</action-state>
+		
+	<action-state id="updateValue">
+        <evaluate expression="adminController.updateUser(userDetails,flowRequestContext,messageContext)" result="flowScope.res"/>
+		<transition on="${flowScope.res.view == 'true'}" to="editPage"/>
+		<transition on="${flowScope.res.view == 'false'}" to="editPage"/>
+	</action-state>
+	
+	<end-state id="catalogue" view="externalRedirect:http://localhost:8080/EsbSimulator/viewCatalogue.do" />
+	<end-state id="logoutPage" view="externalRedirect:http://localhost:8080/EsbSimulator/login.do" />
+
+	</flow>
